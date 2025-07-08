@@ -1,0 +1,51 @@
+from easydict import EasyDict as edict
+
+
+class WILDTRACK:
+    NAME = 'WILDTRACK'
+    ROOT = r'F:\ANU\ENGN8602\Data\Wildtrack'
+    KEYPOINT = edict()
+    KEYPOINT.NUM = 1
+    KEYPOINT.FLIP_PAIRS = [[0, 5], [1, 4], [2, 3], [10, 15], [11, 14], [12, 13]]
+    KEYPOINT.UPPER_BODY_IDS = [7, 8, 9, 10, 11, 12, 13, 14, 15]
+    KEYPOINT.LOWER_BODY_IDS = [0, 1, 2, 3, 4, 5, 6]
+    KEYPOINT.LOAD_MIN_NUM = 1
+
+    INPUT_SHAPE = (256, 144) # height, width
+    OUTPUT_SHAPE = (64, 36)
+    WIDTH_HEIGHT_RATIO = INPUT_SHAPE[1] / INPUT_SHAPE[0]
+
+    PIXEL_STD = 200
+    COLOR_RGB = True
+
+    TRAIN = edict()
+    TRAIN.BASIC_EXTENTION = 0.0
+    TRAIN.RANDOM_EXTENTION = False 
+    TRAIN.X_EXTENTION = 0.05 
+    TRAIN.Y_EXTENTION = 0.2
+    TRAIN.SCALE_FACTOR_LOW = -0.25 
+    TRAIN.SCALE_FACTOR_HIGH = 0.25 
+    TRAIN.SCALE_SHRINK_RATIO = 1.0
+    TRAIN.ROTATION_FACTOR = 25
+    TRAIN.PROB_ROTATION = 0.3
+    TRAIN.PROB_FLIP = 0.5
+    TRAIN.NUM_KEYPOINTS_HALF_BODY = 8
+    TRAIN.PROB_HALF_BODY = 0.5
+    TRAIN.X_EXTENTION_HALF_BODY = 0.6 
+    TRAIN.Y_EXTENTION_HALF_BODY = 0.6
+    TRAIN.ADD_MORE_AUG = False
+    TRAIN.GAUSSIAN_KERNELS = [(15, 15), (11, 11), (9, 9), (7, 7), (5, 5)]
+
+    TEST = edict()
+    TEST.FLIP = True
+    TEST.X_EXTENTION = 0.1
+    TEST.Y_EXTENTION = 0.3
+    TEST.SHIFT_RATIOS = [0.25]
+    TEST.GAUSSIAN_KERNEL = 9
+
+
+
+def load_dataset(name):
+    if name == 'WILDTRACK':
+        dataset = WILDTRACK()
+    return dataset

@@ -1,0 +1,85 @@
+DATA_CONFIG:
+    # _BASE_CONFIG_: F:\ANU\ENGN8602\Code\MvDDE\MvCHM\cfgs\MultiviewX.yaml
+    # _BASE_CONFIG_: F:\ANU\ENGN8602\Code\MvDDE\MvCHM\cfgs\MultiviewX_plus.yaml
+    _BASE_CONFIG_: /home/jiahao/3DReconstruction/mvdet/IterativeMatchingLabel/submodules/MvCHM/cfgs/Wildtrack.yaml
+
+MODEL:
+    MODE: ['Detection', 'Keypoints', 'Heatmap'] # Keypoints / Heatmap / Detection
+    DETECTOR:
+        NAME: Detector
+        CHECKPOINT: model\detector\checkpoint\rcnn_wtp.pth
+        # CHECKPOINT:  D:\\2.study\\0Projects\\MvCHM_origin\\model\\retina\\checkpoints\\retina_emd_simple.pth
+    REFINE: 
+        INPUT_SHAPE : [256, 144] # height, width
+        OUTPUT_SHAPE : [64, 36]
+        BBOX_X_EXTENSION: 0.2
+        BBOX_Y_EXTENSION: 0.4
+        WIDTH_HEIGHT_RATIO : 0.5625 # INPUT_SHAPE[1] / INPUT_SHAPE[0]
+
+
+    FFE:
+        NAME: DepthFFE
+        PC_PROCESSOR: 
+            NAME: random_filter
+            OPERATOR: {
+                'gaussian_filter': {'sigma' : 5},
+                'random_filter': {'keep_human_point_cloud_rate': 1.0},
+                'no_filter' : False
+            }
+        CONTAIN_FLOOR_POINT_CLOUD: False
+        KEEP_FLOOR_POINT_CLOUD_RATE: 0.5
+        TRANSFORM: bbox_depth_map_to_point_cloud # `scene_depth_map_to_point_cloud` or `bbox_depth_map_to_point_cloud`
+        # RECOMMEND: bbox_depth_map_to_point_cloud; because scene_depth_map_to_point_cloud sort the region of pedestrian 
+        # area by depth, so information is lost. While bbox_depth_map_to_point_cloud doesn't sort the region of human, 
+        # directly project the area of human to corresponding space.
+        USE_DETECTION_FEATURE: False
+    P2V:
+        NAME: Point2Voxel
+        
+        DATA_PROCESSOR:
+            - NAME: mask_points_outside_range
+              ENABLE: True
+            
+            - NAME: shuffle_points
+              ENABLE: True
+              SHUFFLE_ENABLE: {
+                  'train': True,
+                  'test': False
+              }
+            
+            - NAME: transform_points_to_voxel
+              ENABLE: True # must not be False, True by default
+              IMPLEMENT: github
+              MAX_POINTS_PER_VOXEL: 32
+              NUM_POINT_FEATURES: 6 # x y z r g b
+              KEEP_POINT_CLOUD_RATE: 0.3
+              MAX_NUMBER_OF_VOXELS: {
+                  'train': 43200,
+                  'test': 43200
+              }
+
+    VFE: 
+        NAME: PillarVFE
+        USE_NORM: True
+        USE_ABSOLUTE_XYZ: False
+        NUM_FILTERS: [64]
+        NUM_POINT_FEATURES: 6 # case1: 6 x y z r g b; case2: 67 x y z 64-d features
+
+    
+    MAP_TO_BEV:
+        NAME: PointPillarScatter
+        NUM_BEV_FEATURES: 64
+        
+
+    BACKBONE_2D:
+        NAME: BaseBEVBackbone
+        IN_CHANNELS: 64
+        LAYER_NUMS: [3, 5, 5]
+        LAYER_STRIDES: [2, 2, 2]
+        NUM_FILTERS: [64, 128, 256]
+        UPSAMPLE_STRIDES: [2, 4, 8] 
+        NUM_UPSAMPLE_FILTERS: [128, 128, 128]
+
+    HEAD:
+        NAME: PredictionHead
+        IN_CHANNELS: 384 # 384 128 * 3
