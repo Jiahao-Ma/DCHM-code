@@ -77,7 +77,7 @@ class PointPillar(nn.Module):
         
         return batch_dict, batch_pred
     
-def inference(args):
+def Inference(args):
     print(args)
     data_root = args.root
     start_with = args.start_with # start to process from `start_with` th frame
@@ -332,6 +332,9 @@ def parse_config(args_src=None):
     
     parser.add_argument('--checkpoint', type=str,
                         default=None)
+    
+    parser.add_argument('--sup_decoder_checkpoint', type=str,
+                        default=None, help='The checkpoint of the supervised decoder - PointPillar')
 
     parser.add_argument('--print_iter', type=int, default=1,
                         help='print loss summary every N iterations')
@@ -360,7 +363,7 @@ def parse_config(args_src=None):
 
     return args, mvchm_cfg
 
-def main(args_src=None):
+def Train(args_src=None):
     DetectDataPath = '/home/jiahao/Downloads/data/Wildtrack'
     GSDataPath = '/home/jiahao/Downloads/data/wildtrack_data_gt'
     args, cfg = parse_config(args_src)
@@ -449,62 +452,25 @@ def encode_postion(heatmap, mode, grid_reduce, thresh=None, nms=False, _mask=Tru
     pos = np.stack([pos_x, pos_y, np.zeros_like(pos_x)], axis=-1)
     return pos
 
+def main(args):
+    if args.fun_type == 'Inference':
+        Inference(args)
+    elif args.fun_type == 'Train':
+        Train(args)
 
-def evaluate(args_src , ckpt_path, thresh = 0.51, eps=1e-5):
-    from unsupervised_cluster import FormatPRData
-    DetectDataPath = '/home/jiahao/Downloads/data/Wildtrack'
-    GSDataPath = '/home/jiahao/Downloads/data/wildtrack_data_gt'
-    dataset_val = MvCHMMultiviewDataset(MvCHMWildtrack(DetectDataPath), set_name='val')
-    val_dataloader = DataLoader( dataset_val, num_workers=1, batch_size=1)
-    
-    args, cfg = parse_config(args_src)
-    model = PointPillar(cfg, torch.device('cuda'))
-    checkpoint = torch.load(ckpt_path, weights_only=False)
-    model.load_state_dict(checkpoint['model_state_dict'])
-    model.eval()
-    PR_pred = FormatPRData(args.pr_dir_pred)
-    PR_gt = FormatPRData(args.pr_dir_gt)
-    
-    device = torch.device('cuda')
-    monitor = Monitor()
-    with tqdm(iterable=val_dataloader, desc=f'[EVALUATE] ', postfix=dict, mininterval=1) as pbar:
-        for batch_idx, data in enumerate(val_dataloader):
-    
-            with torch.no_grad():
-                clustergs_path = os.path.join(GSDataPath, 'depths', f"{data['frame_idx'].item():08d}", 'diffuse_gs_1_2.ply')
-                print('clustergs_path: ', clustergs_path)
-                pcd = o3d.io.read_point_cloud(clustergs_path)
-                gs_xyz = np.array(pcd.points)
-                gs_rgb = np.array(pcd.colors)
-                gs_xyz = dataset_val.base.get_worldgrid_from_worldcoord_Tensor(gs_xyz)
-                point_clouds = np.concatenate([gs_xyz, gs_rgb], axis=1)
-                point_clouds = torch.from_numpy(point_clouds).float().to(device='cuda')
-                data['point_clouds'] = point_clouds 
-                batch_dict, batch_pred = model(data)
-                heatmap = torch.Tensor(data['heatmap']).to(device)
-                plt.figure(figsize=(20, 10))
-                plt.subplot(121)
-                plt.imshow(heatmap.squeeze().cpu().numpy()) 
-                plt.subplot(122)
-                plt.imshow(torch.sigmoid(batch_pred['heatmap']).squeeze().cpu().numpy())
-                plt.savefig(f'experiments/2024-10-08_19-41-57_wt/heatmaps/heatmap{batch_idx}.jpg', dpi=300, bbox_inches='tight', pad_inches=0)
-                plt.close()
-                gt_pos = encode_postion(heatmap = heatmap, mode = 'gt', grid_reduce = dataset_val.base.grid_reduce)
-                pred_pos = encode_postion(heatmap = batch_pred['heatmap'], mode = 'pred', grid_reduce = dataset_val.base.grid_reduce, thresh = thresh, nms=True) # (n, 3)
-                print("gt: ", gt_pos.shape, " pred: ", pred_pos.shape)
-                PR_pred.add_item(pred_pos, batch_idx)
-                PR_gt.add_item(gt_pos, batch_idx)
-                pbar.update(1)
-        PR_pred.save()
-        PR_gt.save()
-    
-    recall, precision, moda, modp = evaluate_rcll_prec_moda_modp(args.pr_dir_pred, args.pr_dir_gt)
-    print(f'\nEvaluation: threshold: {thresh}, MODA {moda:.1f}, MODP {modp:.1f}, prec {precision:.1f}, rcll {recall:.1f}')
-            
 if __name__ == '__main__':
     '''
     # Inference (For debugging)
     '''
+    parser = ArgumentParser("Per scene training using Gaussian Splatting", add_help=True)
+    parser.add_argument("--root", type=str, default='path_to_wildtrack_data_gt', help="path to image folder")
+    parser.add_argument("--round", type=str, default='2_1', help="round name")
+    parser.add_argument("--start-with", type=int, default=0, help="the index of the first image to start with")
+    parser.add_argument("--end-with", type=int, default=-1, help="the index of the last image to end with")
+    parser.add_argument("--n-segments", type=int, default=30, help="the number of superpixels for each person")
+    parser.add_argument("--fun_type", choice=['Inference', 'Train', 'Evaluate'], default='Inference', help="function type to run")
+
+    # FOR DEBUG
     args_src = [
                 '--root', '/home/jiahao/Downloads/data/wildtrack_data_gt',
                 '--round', '2_1',
@@ -512,29 +478,22 @@ if __name__ == '__main__':
                 '--start-with', '0',
                 '--end-with', '-1',
             ]
-    parser = ArgumentParser("Per scene training using Gaussian Splatting", add_help=True)
-    parser.add_argument("--root", type=str, required=True, help="path to image folder")
-    parser.add_argument("--round", type=str, required=True, help="round name")
-    parser.add_argument("--start-with", type=int, default=0, help="the index of the first image to start with")
-    parser.add_argument("--end-with", type=int, default=-1, help="the index of the last image to end with")
-    parser.add_argument("--n-segments", type=int, default=30, help="the number of superpixels for each person")
-
     # args = parser.parse_args(args_src) # FOR DEBUG
     args = parser.parse_args()
     
-    inference(args)
+    # '''
+    # # Inference
+    # '''
+    # Inference(args)
     
-    '''
-    # Training
-    '''
-    main()
+    # '''
+    # # Training
+    # '''
+    # Train()
+
+    # Wrap the main function to allow for easy execution
+    main(args)
     
-    '''
-    # Evaluate 
-    '''
-    args_src = [
-        '--pr_dir_pred', 'output/exp_sup/pr_dir_pred.txt',
-        '--pr_dir_gt', 'output/exp_sup/pr_dir_gt.txt',
-    ]
-    evaluate(args_src, ckpt_path='experiments/2024-10-08_19-41-57_wt/checkpoints/Epoch39_train_loss0.0280_val_loss1.7337.pth', thresh = 0.7)
+    
+   
    
