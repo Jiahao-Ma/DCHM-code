@@ -92,7 +92,7 @@ python unsupervised_cluster.py \
     --n-segments, 30, \
     --start-with, 0, \
     --end-with, 10, \
-    --min_gs_threshold, 10, \
+    --min_gs_threshold, 10
 ```
 
 ## Training - Stage1. Generating Pseudo-depth Label
