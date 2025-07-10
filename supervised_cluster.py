@@ -505,29 +505,29 @@ if __name__ == '__main__':
     '''
     # Inference (For debugging)
     '''
-    # args_src = [
-    #             '--root', '/home/jiahao/Downloads/data/wildtrack_data_gt',
-    #             '--round', '2_1',
-    #             '--n-segments', '30',
-    #             '--start-with', '0',
-    #             '--end-with', '-1',
-    #         ]
-    # parser = ArgumentParser("Per scene training using Gaussian Splatting", add_help=True)
-    # parser.add_argument("--root", type=str, required=True, help="path to image folder")
-    # parser.add_argument("--round", type=str, required=True, help="round name")
-    # parser.add_argument("--start-with", type=int, default=0, help="the index of the first image to start with")
-    # parser.add_argument("--end-with", type=int, default=-1, help="the index of the last image to end with")
-    # parser.add_argument("--n-segments", type=int, default=30, help="the number of superpixels for each person")
+    args_src = [
+                '--root', '/home/jiahao/Downloads/data/wildtrack_data_gt',
+                '--round', '2_1',
+                '--n-segments', '30',
+                '--start-with', '0',
+                '--end-with', '-1',
+            ]
+    parser = ArgumentParser("Per scene training using Gaussian Splatting", add_help=True)
+    parser.add_argument("--root", type=str, required=True, help="path to image folder")
+    parser.add_argument("--round", type=str, required=True, help="round name")
+    parser.add_argument("--start-with", type=int, default=0, help="the index of the first image to start with")
+    parser.add_argument("--end-with", type=int, default=-1, help="the index of the last image to end with")
+    parser.add_argument("--n-segments", type=int, default=30, help="the number of superpixels for each person")
 
     # args = parser.parse_args(args_src) # FOR DEBUG
-    # args = parser.parse_args()
+    args = parser.parse_args()
     
-    # inference(args)
+    inference(args)
     
     '''
     # Training
     '''
-    # main()
+    main()
     
     '''
     # Evaluate 
@@ -537,31 +537,4 @@ if __name__ == '__main__':
         '--pr_dir_gt', 'output/exp_sup/pr_dir_gt.txt',
     ]
     evaluate(args_src, ckpt_path='experiments/2024-10-08_19-41-57_wt/checkpoints/Epoch39_train_loss0.0280_val_loss1.7337.pth', thresh = 0.7)
-    '''
-    
-    output/final_wt_full_training_data/latest.pth
-    Evaluation: threshold: 0.505, MODA 97.3, MODP 100.0, prec 97.9, rcll 99.4
-    
-    output/final_wt_full_training_data/ 20.pth
-    Evaluation: threshold: 0.85, MODA 88.6, MODP 100.0, prec 100.0, rcll 88.6
-    
-    output/final_wt_full_training_data/ 40.pth
-    Evaluation: threshold: 0.85, MODA 89.9, MODP 100.0, prec 100.0, rcll 89.9
-    
-    output/final_wt_full_training_data/ 80.pth
-    Evaluation: threshold: 0.85, MODA 79.7, MODP 100.0, prec 99.9, rcll 79.8
-    Evaluation: threshold: 0.51, MODA 89.9, MODP 100.0, prec 91.4, rcll 99.3
-    
-    output/final_wt_full_training_data/ 160.pth
-    Evaluation: threshold: 0.51, MODA 96.6, MODP 100.0, prec 97.6, rcll 99.1
-    
-    output/final_wt_part_training_data/ 20.pth
-    Evaluation: threshold: 0.51, MODA 85.9, MODP 100.0, prec 87.8, rcll 99.8
-    Evaluation: threshold: 0.7, MODA 94.2, MODP 100.0, prec 96.3, rcll 98.0
-    
-    output/final_wt_part_training_data/ 60.pth
-    Evaluation: threshold: 0.7, MODA 95.5, MODP 100.0, prec 98.1, rcll 97.4
-    
-    output/final_wt_part_training_data/120.pth
-    Evaluation: threshold: 0.7, MODA 95.2, MODP 100.0, prec 98.1, rcll 97.1
-    '''
+   

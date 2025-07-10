@@ -478,7 +478,7 @@ if __name__ == '__main__':
     clusterGS(args, save_frame='CVPR2025/clustering/figures')
     
     # clustering and localization
-    # localizeGS(args)
+    localizeGS(args)
 
     # post-processing GS to get the final prediction
     post_processGS(args)
