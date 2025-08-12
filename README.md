@@ -2,7 +2,7 @@
 
 # DCHM: Depth-Consistent Human Modeling for Multiview Detection
 
-<a href=""><img src='https://img.shields.io/badge/arXiv-Paper-red?logo=arxiv&logoColor=white' alt='arXiv'></a>
+<a href="https://arxiv.org/abs/2507.14505"><img src='https://img.shields.io/badge/arXiv-Paper-red?logo=arxiv&logoColor=white' alt='arXiv'></a>
 <a href='https://jiahao-ma.github.io/DCHM/'><img src='https://img.shields.io/badge/Project_Page-Website-green?logo=googlechrome&logoColor=white' alt='Project Page'></a>
 
 
