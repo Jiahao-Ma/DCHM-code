@@ -37,6 +37,8 @@ pip3 install torch torchvision torchaudio # use the correct version of cuda for 
 
 ### 3. Install necessary libraries
 
+Following the Grounding-SAM preparation process, create a submodules folder and clone the required libraries into it.
+
 - **Grounding-SAM**
 
     ```bash
@@ -67,6 +69,17 @@ pip3 install torch torchvision torchaudio # use the correct version of cuda for 
     pip install gsplat
     ```
 
+- **DepthAnything v2** 
+    ```bash
+    git clone https://github.com/DepthAnything/Depth-Anything-V2
+    ```
+
+- **MvCHM**
+
+    We evaluate our consistent representation in the supervised multi-view detection using [MvCHM](https://github.com/Jiahao-Ma/MvCHM.git).
+    ```bash
+    git clone https://github.com/Jiahao-Ma/MvCHM.git
+    ```
 
 ### 4. Download the checkpoints and our pseudo-depth label
 ```bash
@@ -242,5 +255,10 @@ python unsupervised_evaluate.py \
 ## Citation
 If you find our code or paper useful for your research, please consider citing:
 ```bibtex
-    # Coming soon ...
+@article{ma2025dchm,
+    title={DCHM: Depth-Consistent Human Modeling for Multiview Detection},
+    author={Ma, Jiahao and Wang, Tianyu and Liu, Miaomiao and Ahmedt-Aristizabal, David and Nguyen, Chuong},
+    journal={arXiv preprint arXiv:2507.14505},
+    year={2025}
+}
 ```
